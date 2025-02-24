@@ -141,11 +141,23 @@ namespace ShoppingInfrastructure.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user != null)
+            if (user == null)
             {
-                _context.Users.Remove(user);
+                return NotFound();
             }
-            await _context.SaveChangesAsync();
+
+            _context.Users.Remove(user);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["DeleteError"] = "Неможливо видалити користувача, оскільки існують пов'язані записи.";
+                return RedirectToAction(nameof(Index));
+            }
+
             return RedirectToAction(nameof(Index));
         }
 

@@ -152,6 +152,19 @@ namespace ShoppingInfrastructure.Controllers
                 _context.Payments.Remove(payment);
             }
 
+            try
+            {
+                _context.Payments.Remove(payment);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["DeleteError"] = "Неможливо видалити платіж, оскільки існують пов'язані записи.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return RedirectToAction(nameof(Index));
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

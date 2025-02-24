@@ -152,6 +152,18 @@ namespace ShoppingInfrastructure.Controllers
                 _context.Orders.Remove(order);
             }
 
+            try
+            {
+                _context.Orders.Remove(order);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["DeleteError"] = "Неможливо видалити замовлення, оскільки існують пов'язані записи.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return RedirectToAction(nameof(Index));
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

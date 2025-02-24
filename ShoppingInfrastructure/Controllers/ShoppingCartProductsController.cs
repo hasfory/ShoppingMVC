@@ -158,6 +158,19 @@ namespace ShoppingInfrastructure.Controllers
                 _context.ShoppingCartProducts.Remove(shoppingCartProduct);
             }
 
+            try
+            {
+                _context.ShoppingCartProducts.Remove(shoppingCartProduct);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["DeleteError"] = "Неможливо видалити кошик, оскільки існують пов'язані записи.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return RedirectToAction(nameof(Index));
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

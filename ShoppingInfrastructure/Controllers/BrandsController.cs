@@ -145,6 +145,19 @@ namespace ShoppingInfrastructure.Controllers
                 _context.Brands.Remove(brand);
             }
 
+            try
+            {
+                _context.Brands.Remove(brand);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["DeleteError"] = "Неможливо видалити бренд, оскільки існують пов'язані записи";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return RedirectToAction(nameof(Index));
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

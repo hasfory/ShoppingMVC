@@ -153,6 +153,18 @@ namespace ShoppingInfrastructure.Controllers
                 _context.ShoppingCarts.Remove(shoppingCart);
             }
 
+            try
+            {
+                _context.ShoppingCarts.Remove(shoppingCart);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["DeleteError"] = "Неможливо видалити бонусну карту, оскільки існують пов'язані записи.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return RedirectToAction(nameof(Index));
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
