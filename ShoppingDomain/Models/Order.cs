@@ -11,7 +11,7 @@ public partial class Order : Entity
     public DateTime DateOfOrdering { get; set; }
     [Display(Name = "Номер транзакції")]
     public string TransactionNumber { get; set; } = null!;
-    [Display(Name = "Статус")]
+    [Display(Name = "Кошик")]
     public int ShoppingCartId { get; set; }
     [Display(Name = "Кошик")]
     public virtual ShoppingCart? ShoppingCart { get; set; } = null!;

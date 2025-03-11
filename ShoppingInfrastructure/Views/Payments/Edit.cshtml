@@ -5,8 +5,6 @@
 }
 
 <h1>Редагувати</h1>
-
-<h4>Редагувати</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -24,7 +22,11 @@
             </div>
             <div class="form-group">
                 <label asp-for="PaymentMethod" class="control-label"></label>
-                <input asp-for="PaymentMethod" class="form-control" />
+                <select asp-for="PaymentMethod" class="form-control">
+                    <option value="">Оберіть спосіб оплати</option>
+                    <option value="Накладений платіж">Накладений платіж</option>
+                    <option value="Карта">Карта</option>
+                </select>
                 <span asp-validation-for="PaymentMethod" class="text-danger"></span>
             </div>
             <div class="form-group">
