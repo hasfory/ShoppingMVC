@@ -14,7 +14,7 @@
 }
 
 <p>
-    <a asp-action="Create">Створити новий</a>
+    <a class="btn btn-primary" asp-action="Create">Створити новий</a>
 </p>
 <table class="table">
     <thead>
@@ -23,7 +23,7 @@
                 @Html.DisplayNameFor(model => model.Product)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ShoppingCart)
+                @Html.DisplayNameFor(model => model.User)
             </th>
             <th></th>
         </tr>
@@ -32,10 +32,10 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Product.Category)
+                @Html.DisplayFor(modelItem => item.Product.Name)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ShoppingCart.Id)
+                @Html.DisplayFor(modelItem => item.User.PhoneOrEmail)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Редагувати</a> |

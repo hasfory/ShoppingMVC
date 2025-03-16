@@ -27,18 +27,9 @@
                 </label>
             </div>
             <div class="form-group">
-                <label asp-for="Category" class="control-label"></label>
-                <select asp-for="Category" class="form-control">
-                    <option value="">Оберіть категорію</option>
-                    <option value="Парфумерія">Парфумерія</option>
-                    <option value="Макіяж">Макіяж</option>
-                    <option value="Догляд за обличчям">Догляд за обличчям</option>
-                    <option value="Догляд за волоссям">Догляд за волоссям</option>
-                    <option value="Догляд за тілом">Догляд за тілом</option>
-                    <option value="Одяг">Одяг</option>
-                    <option value="Подарунки">Подарунки</option>
-                </select>
-                <span asp-validation-for="Category" class="text-danger"></span>
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Створити" class="btn btn-primary" />

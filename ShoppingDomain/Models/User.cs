@@ -8,8 +8,11 @@ public partial class User : Entity
 {
     //public int Id { get; set; }
     [Display(Name = "Email")]
+    [EmailAddress(ErrorMessage = "Неправильний формат електронної адреси")]
+    [Required(ErrorMessage = "Це поле є обов'язковим.")]
     public string PhoneOrEmail { get; set; } = null!;
     [Display(Name = "Ім'я та прізвище")]
+    [Required(ErrorMessage = "Це поле є обов'язковим.")]
     public string NameSurname { get; set; } = null!;
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();

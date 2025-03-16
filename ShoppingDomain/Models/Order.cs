@@ -10,6 +10,7 @@ public partial class Order : Entity
     [Display(Name = "Дата оформлення замовлення")]
     public DateTime DateOfOrdering { get; set; }
     [Display(Name = "Номер транзакції")]
+    [Required(ErrorMessage = "Номер транзакції є обов'язковим полем.")]
     public string TransactionNumber { get; set; } = null!;
     [Display(Name = "Кошик")]
     public int ShoppingCartId { get; set; }

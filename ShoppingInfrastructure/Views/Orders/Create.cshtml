@@ -13,8 +13,10 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="TransactionNumber" class="control-label"></label>
-                <input asp-for="TransactionNumber" class="form-control" />
+                <label class="control-label">Номер транзакції</label>
+                <select asp-for="TransactionNumber" class="form-control" asp-items="ViewBag.TransactionNumbers">
+                    <option value="">Оберіть номер транзакції</option>
+                </select>
                 <span asp-validation-for="TransactionNumber" class="text-danger"></span>
             </div>
             <div class="form-group">

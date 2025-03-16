@@ -22,7 +22,9 @@ namespace ShoppingInfrastructure.Controllers
         // GET: ShoppingCartProducts
         public async Task<IActionResult> Index()
         {
-            var shoppingDbContext = _context.ShoppingCartProducts.Include(s => s.Product).Include(s => s.ShoppingCart);
+            var shoppingDbContext = _context.ShoppingCartProducts
+                .Include(s => s.Product)
+                .Include(s => s.User);
             return View(await shoppingDbContext.ToListAsync());
         }
 
@@ -36,7 +38,7 @@ namespace ShoppingInfrastructure.Controllers
 
             var shoppingCartProduct = await _context.ShoppingCartProducts
                 .Include(s => s.Product)
-                .Include(s => s.ShoppingCart)
+                .Include(s => s.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (shoppingCartProduct == null)
             {
@@ -49,17 +51,15 @@ namespace ShoppingInfrastructure.Controllers
         // GET: ShoppingCartProducts/Create
         public IActionResult Create()
         {
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Category");
-            ViewData["ShoppingCartId"] = new SelectList(_context.ShoppingCarts, "Id", "Id");
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name");
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "PhoneOrEmail");
             return View();
         }
 
         // POST: ShoppingCartProducts/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ShoppingCartId,ProductId,Id")] ShoppingCartProduct shoppingCartProduct)
+        public async Task<IActionResult> Create([Bind("UserId,ProductId,Id")] ShoppingCartProduct shoppingCartProduct)
         {
             if (ModelState.IsValid)
             {
@@ -67,8 +67,8 @@ namespace ShoppingInfrastructure.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Category", shoppingCartProduct.ProductId);
-            ViewData["ShoppingCartId"] = new SelectList(_context.ShoppingCarts, "Id", "Id", shoppingCartProduct.ShoppingCartId);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", shoppingCartProduct.ProductId);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "PhoneOrEmail", shoppingCartProduct.UserId);
             return View(shoppingCartProduct);
         }
 
@@ -85,17 +85,15 @@ namespace ShoppingInfrastructure.Controllers
             {
                 return NotFound();
             }
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Category", shoppingCartProduct.ProductId);
-            ViewData["ShoppingCartId"] = new SelectList(_context.ShoppingCarts, "Id", "Id", shoppingCartProduct.ShoppingCartId);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", shoppingCartProduct.ProductId);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "PhoneOrEmail", shoppingCartProduct.UserId);
             return View(shoppingCartProduct);
         }
 
         // POST: ShoppingCartProducts/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ShoppingCartId,ProductId,Id")] ShoppingCartProduct shoppingCartProduct)
+        public async Task<IActionResult> Edit(int id, [Bind("UserId,ProductId,Id")] ShoppingCartProduct shoppingCartProduct)
         {
             if (id != shoppingCartProduct.Id)
             {
@@ -122,8 +120,8 @@ namespace ShoppingInfrastructure.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Category", shoppingCartProduct.ProductId);
-            ViewData["ShoppingCartId"] = new SelectList(_context.ShoppingCarts, "Id", "Id", shoppingCartProduct.ShoppingCartId);
+            ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", shoppingCartProduct.ProductId);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "PhoneOrEmail", shoppingCartProduct.UserId);
             return View(shoppingCartProduct);
         }
 
@@ -137,7 +135,7 @@ namespace ShoppingInfrastructure.Controllers
 
             var shoppingCartProduct = await _context.ShoppingCartProducts
                 .Include(s => s.Product)
-                .Include(s => s.ShoppingCart)
+                .Include(s => s.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (shoppingCartProduct == null)
             {

@@ -57,7 +57,7 @@ namespace ShoppingInfrastructure.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Price,BrandId,Availability,Category,Id")] Product product)
+        public async Task<IActionResult> Create([Bind("Price,BrandId,Availability,Name,Id")] Product product)
         {
             if (ModelState.IsValid)
             {
@@ -91,7 +91,7 @@ namespace ShoppingInfrastructure.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Price,BrandId,Availability,Category,Id")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Price,BrandId,Availability,Name,Id")] Product product)
         {
             if (id != product.Id)
             {

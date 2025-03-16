@@ -7,12 +7,11 @@ namespace ShoppingDomain.Models;
 public partial class ShoppingCart : Entity
 {
     //public int Id { get; set; }
-    [Display: Name("Користувач")]
+    [Display(Name = "Користувач")]
     public int UserId { get; set; }
-  
+
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    public virtual ICollection<ShoppingCartProduct> ShoppingCartProducts { get; set; } = new List<ShoppingCartProduct>();
     [Display(Name = "Користувач")]
     public virtual User? User { get; set; } = null!;
 }

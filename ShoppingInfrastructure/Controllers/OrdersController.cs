@@ -49,12 +49,11 @@ namespace ShoppingInfrastructure.Controllers
         public IActionResult Create()
         {
             ViewData["ShoppingCartId"] = new SelectList(_context.ShoppingCarts, "Id", "Id");
+            ViewBag.TransactionNumbers = new SelectList(_context.Payments.Select(p => p.TransactionNumber).ToList());
             return View();
         }
 
         // POST: Orders/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("DateOfOrdering,TransactionNumber,ShoppingCartId,Id")] Order order)
@@ -87,8 +86,6 @@ namespace ShoppingInfrastructure.Controllers
         }
 
         // POST: Orders/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("DateOfOrdering,TransactionNumber,ShoppingCartId,Id")] Order order)
