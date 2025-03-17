@@ -1,7 +1,74 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Статистика";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+<h2>Діаграми</h2>
+
+<div class="row">
+    <div class="col-6">
+        <h4>Товари за брендами</h4>
+        <div id="brandProductCountChart"></div>
+    </div>
+    <div class="col-6">
+        <h4>Кількість платежів за користувачами</h4>
+        <div id="userPaymentCountChart"></div>
+    </div>
 </div>
+
+@section Scripts {
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(drawCharts);
+
+        function drawCharts() {
+            // Діаграма "Кількість товарів за брендами"
+            fetch('/api/charts/brandProductCount')
+                .then(response => response.json())
+                .then(data => {
+                    const dataTable = new google.visualization.DataTable();
+                    dataTable.addColumn('string', 'Бренд');
+                    dataTable.addColumn('number', 'Кількість товарів');
+
+                    data.forEach(item => {
+                        dataTable.addRow([item.brandName, item.count]);
+                    });
+
+                    const options = {
+                        title: 'Товари за брендами',
+                        width: 500,
+                        height: 400
+                    };
+
+                    const chart = new google.visualization.ColumnChart(
+                        document.getElementById('brandProductCountChart')
+                    );
+                    chart.draw(dataTable, options);
+                });
+
+            // Діаграма "Кількість платежів за користувачами"
+            fetch('/api/charts/userPaymentCount')
+                .then(response => response.json())
+                .then(data => {
+                    const dataTable = new google.visualization.DataTable();
+                    dataTable.addColumn('string', 'Користувач');
+                    dataTable.addColumn('number', 'Кількість платежів');
+
+                    data.forEach(item => {
+                        dataTable.addRow([item.userEmail, item.count]);
+                    });
+
+                    const options = {
+                        title: 'Платежі за користувачами',
+                        width: 500,
+                        height: 400
+                    };
+
+                    const chart = new google.visualization.ColumnChart(
+                        document.getElementById('userPaymentCountChart')
+                    );
+                    chart.draw(dataTable, options);
+                });
+        }
+    </script>
+}

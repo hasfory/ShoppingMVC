@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +49,16 @@ namespace ShoppingInfrastructure.Controllers
             return View(shoppingCartProduct);
         }
 
+        public class ShoppingCartProductsCreateViewModel
+        {
+            [Display(Name = "Користувач")]
+            public int UserId { get; set; }
+
+            [Display(Name = "Товари")]
+            public List<int> SelectedProductIds { get; set; } = new List<int>();
+
+            public MultiSelectList Products { get; set; }
+        }
         // GET: ShoppingCartProducts/Create
         public IActionResult Create()
         {
@@ -71,6 +82,7 @@ namespace ShoppingInfrastructure.Controllers
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "PhoneOrEmail", shoppingCartProduct.UserId);
             return View(shoppingCartProduct);
         }
+
 
         // GET: ShoppingCartProducts/Edit/5
         public async Task<IActionResult> Edit(int? id)
