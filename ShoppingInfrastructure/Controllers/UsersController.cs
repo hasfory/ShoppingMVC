@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ShoppingDomain.Models;
 using ShoppingInfrastructure;
+using System.IO;
 
 namespace ShoppingInfrastructure.Controllers
 {
@@ -17,6 +19,49 @@ namespace ShoppingInfrastructure.Controllers
         public UsersController(ShoppingDbContext context)
         {
             _context = context;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportToExcel()
+        {
+            var users = await _context.Users
+                .Select(u => new
+                {
+                    ExportEmail = !string.IsNullOrEmpty(u.Email)
+                        ? u.Email
+                        : u.PhoneOrEmail,
+                    NameSurname = u.NameSurname,
+                    PhoneOrEmail = u.PhoneOrEmail
+                })
+                .ToListAsync();
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Users");
+                worksheet.Cell(1, 1).Value = "Email";
+                worksheet.Cell(1, 2).Value = "Ім'я та прізвище";
+
+                int row = 2;
+                foreach (var user in users)
+                {
+                    worksheet.Cell(row, 1).Value = user.ExportEmail;
+                    worksheet.Cell(row, 2).Value = user.NameSurname;
+                    row++;
+                }
+
+                worksheet.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    stream.Position = 0;
+
+                    string fileName = $"UsersReport_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+                    return File(stream.ToArray(),
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        fileName);
+                }
+            }
         }
 
         // GET: Users
@@ -51,8 +96,6 @@ namespace ShoppingInfrastructure.Controllers
         }
 
         // POST: Users/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("PhoneOrEmail,NameSurname,Id")] ApplicationUser user)

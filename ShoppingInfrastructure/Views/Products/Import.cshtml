@@ -1,0 +1,21 @@
+﻿@model object
+@{
+    ViewData["Title"] = "Імпорт товарів з Excel";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (TempData["ImportMessage"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["ImportMessage"]
+    </div>
+}
+
+<form asp-action="ImportFromExcel" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="excelFile" class="form-label">Виберіть Excel-файл</label>
+        <input type="file" name="excelFile" id="excelFile" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Імпортувати</button>
+</form>

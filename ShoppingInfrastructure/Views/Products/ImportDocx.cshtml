@@ -1,0 +1,21 @@
+﻿@model object
+@{
+    ViewData["Title"] = "Імпорт товарів із .docx";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (TempData["ImportMessage"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["ImportMessage"]
+    </div>
+}
+
+<form asp-action="ImportFromDocx" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="docxFile" class="form-label">Виберіть .docx-файл</label>
+        <input type="file" name="docxFile" id="docxFile" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Імпортувати</button>
+</form>
