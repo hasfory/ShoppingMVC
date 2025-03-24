@@ -26,10 +26,10 @@ namespace ShoppingInfrastructure.Controllers
         public async Task<JsonResult> GetBrandProductCountAsync(CancellationToken cancellationToken)
         {
             var responseItems = await _context.Products
-                .GroupBy(p => p.Brand.BrandName)  // групуємо за назвою бренду
+                .GroupBy(p => p.Brand.BrandName)  
                 .Select(g => new CountByBrandResponseItem(
-                    g.Key,       // Назва бренду
-                    g.Count()    // Кількість товарів у групі
+                    g.Key,       
+                    g.Count()    
                 ))
                 .ToListAsync(cancellationToken);
 
@@ -41,7 +41,7 @@ namespace ShoppingInfrastructure.Controllers
         public async Task<JsonResult> GetUserPaymentCountAsync(CancellationToken cancellationToken)
         {
             var responseItems = await _context.Payments
-                .GroupBy(p => p.User.PhoneOrEmail) // або p.User.NameSurname, якщо треба
+                .GroupBy(p => p.User.PhoneOrEmail) 
                 .Select(g => new CountByUserResponseItem(
                     g.Key,
                     g.Count()

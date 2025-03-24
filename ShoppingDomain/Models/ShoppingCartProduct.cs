@@ -8,9 +8,9 @@ public partial class ShoppingCartProduct : Entity
 {
     //public int Id { get; set; }
     [Display(Name = "Користувач")]
-    public int UserId { get; set; }
+    public string? UserId { get; set; }
     [Display(Name = "Користувач")]
-    public virtual User? User { get; set; }
+    public virtual ApplicationUser? User { get; set; }
     [Display(Name = "Товар")]
     public int ProductId { get; set; }
     [Display(Name = "Товар")]

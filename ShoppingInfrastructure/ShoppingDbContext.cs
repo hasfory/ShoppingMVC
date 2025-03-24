@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ShoppingDomain.Models;
 
 namespace ShoppingInfrastructure
 {
-    public partial class ShoppingDbContext : DbContext
+    public partial class ShoppingDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ShoppingDbContext()
-        {
-        }
+        public ShoppingDbContext() { }
 
         public ShoppingDbContext(DbContextOptions<ShoppingDbContext> options)
             : base(options)
@@ -22,14 +21,14 @@ namespace ShoppingInfrastructure
         public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public virtual DbSet<ShoppingCartProduct> ShoppingCartProducts { get; set; }
-        public virtual DbSet<User> Users { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. 
             => optionsBuilder.UseSqlServer("Server=vivobooks14x\\SQLEXPRESS; Database=ShoppingDB; Trusted_Connection=True; TrustServerCertificate=True;");
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Brand>(entity =>
             {
                 entity.HasKey(e => e.Id).HasName("PK__Brand__3214EC07B6A09B2F");
@@ -120,24 +119,10 @@ namespace ShoppingInfrastructure
                     .HasConstraintName("FK_SCP_Products");
 
                 entity.HasOne(d => d.User)
-                    .WithMany()  
+                    .WithMany()
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_SCP_Users");
-            });
-
-            modelBuilder.Entity<User>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__User__3214EC0757376CEA");
-
-                entity.ToTable("User");
-
-                entity.Property(e => e.NameSurname)
-                    .HasMaxLength(200)
-                    .IsUnicode(false);
-                entity.Property(e => e.PhoneOrEmail)
-                    .HasMaxLength(200)
-                    .IsUnicode(false);
             });
 
             OnModelCreatingPartial(modelBuilder);

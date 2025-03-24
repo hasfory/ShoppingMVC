@@ -19,7 +19,7 @@ public partial class Payment : Entity
     [Required(ErrorMessage = "Будь ласка, оберіть спосіб оплати.")]
     public string PaymentMethod { get; set; } = null!;
     [Display(Name = "Користувач")]
-    public int UserId { get; set; }
+    public string? UserId { get; set; }
     [Display(Name = "Користувач")]
-    public virtual User? User { get; set; } = null!;
+    public virtual ApplicationUser? User { get; set; } = null!;
 }

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace ShoppingDomain.Models;
 
-public partial class User : Entity
+public partial class ApplicationUser : IdentityUser
 {
     //public int Id { get; set; }
     [Display(Name = "Email")]
@@ -18,4 +19,4 @@ public partial class User : Entity
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     public virtual ICollection<ShoppingCart> ShoppingCarts { get; set; } = new List<ShoppingCart>();
-}
+    }
