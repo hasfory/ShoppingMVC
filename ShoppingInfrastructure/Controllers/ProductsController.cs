@@ -63,7 +63,6 @@ namespace ShoppingInfrastructure.Controllers
                 {
                     workbook.SaveAs(stream);
                     stream.Position = 0;
-
                     string fileName = $"ProductsReport_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
                     return File(stream.ToArray(),
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -72,7 +71,73 @@ namespace ShoppingInfrastructure.Controllers
             }
         }
 
-        // GET: Products
+        [HttpGet]
+        public IActionResult ExportToWordOpenXml()
+        {
+            using (var stream = new MemoryStream())
+            {
+                using (var wordDoc = WordprocessingDocument.Create(
+                    stream,
+                    WordprocessingDocumentType.Document,
+                    true))
+                {
+                    MainDocumentPart mainPart = wordDoc.AddMainDocumentPart();
+                    mainPart.Document = new Document();
+                    Body body = new Body();
+                    mainPart.Document.Append(body);
+
+                    // Заголовок
+                    Paragraph paragraph = new Paragraph(new Run(new Text("Товари")));
+                    body.Append(paragraph);
+
+                    // Створюємо таблицю
+                    Table table = new Table();
+                    table.AppendChild(new TableProperties(
+                        new TableBorders(
+                            new TopBorder() { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
+                            new BottomBorder() { Val = BorderValues.Single, Size = 6 },
+                            new LeftBorder() { Val = BorderValues.Single, Size = 6 },
+                            new RightBorder() { Val = BorderValues.Single, Size = 6 },
+                            new InsideHorizontalBorder() { Val = BorderValues.Single, Size = 6 },
+                            new InsideVerticalBorder() { Val = BorderValues.Single, Size = 6 }
+                        )
+                    ));
+
+                    // Рядок заголовків
+                    TableRow headerRow = new TableRow();
+                    headerRow.Append(new TableCell(new Paragraph(new Run(new Text("Ціна")))));
+                    headerRow.Append(new TableCell(new Paragraph(new Run(new Text("Наявність")))));
+                    headerRow.Append(new TableCell(new Paragraph(new Run(new Text("Назва")))));
+                    headerRow.Append(new TableCell(new Paragraph(new Run(new Text("Бренд")))));
+                    table.Append(headerRow);
+
+                    // Отримуємо дані з БД
+                    var products = _context.Products.Include(p => p.Brand).ToList();
+
+                    foreach (var product in products)
+                    {
+                        TableRow dataRow = new TableRow();
+                        dataRow.Append(new TableCell(new Paragraph(new Run(new Text(product.Price.ToString())))));
+                        string availabilityText = product.Availability ? "є" : "немає";
+                        dataRow.Append(new TableCell(new Paragraph(new Run(new Text(availabilityText)))));
+                        dataRow.Append(new TableCell(new Paragraph(new Run(new Text(product.Name)))));
+                        string brandName = product.Brand?.BrandName ?? "";
+                        dataRow.Append(new TableCell(new Paragraph(new Run(new Text(brandName)))));
+                        table.Append(dataRow);
+                    }
+
+                    body.Append(table);
+                }
+
+                stream.Position = 0;
+                var fileName = "ProductsReport.docx";
+                return File(stream.ToArray(),
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    fileName);
+            }
+        }
+
+        // GET: Products/Index
         public async Task<IActionResult> Index()
         {
             var shoppingDbContext = _context.Products.Include(p => p.Brand);
@@ -203,7 +268,6 @@ namespace ShoppingInfrastructure.Controllers
 
             try
             {
-                _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
@@ -220,12 +284,14 @@ namespace ShoppingInfrastructure.Controllers
             return _context.Products.Any(e => e.Id == id);
         }
 
+        // GET: Products/Import (Excel)
         [HttpGet]
         public IActionResult Import()
         {
             return View();
         }
 
+        // POST: Products/ImportFromExcel
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ImportFromExcel(IFormFile excelFile)
@@ -246,7 +312,7 @@ namespace ShoppingInfrastructure.Controllers
                     using (var workbook = new ClosedXML.Excel.XLWorkbook(stream))
                     {
                         var worksheet = workbook.Worksheet("Products");
-                        int row = 2; 
+                        int row = 2;
                         while (!worksheet.Cell(row, 1).IsEmpty())
                         {
                             var priceCell = worksheet.Cell(row, 1).GetValue<string>();
@@ -254,16 +320,23 @@ namespace ShoppingInfrastructure.Controllers
                             var nameCell = worksheet.Cell(row, 3).GetValue<string>();
                             var brandCell = worksheet.Cell(row, 4).GetValue<string>();
 
-                            decimal price = 0;
-                            decimal.TryParse(priceCell, out price);
+                            if (!decimal.TryParse(priceCell, out decimal price))
+                            {
+                                throw new Exception($"Невірний формат ціни у рядку {row}.");
+                            }
+                            if (price < 0)
+                            {
+                                throw new Exception("Ціна не може бути від'ємною");
+                            }
 
-                            bool availability = false;
-                            if (availabilityCell == "є") availability = true;
-                            else if (availabilityCell.Equals("true", StringComparison.OrdinalIgnoreCase))
-                                availability = true;
+                            string avail = availabilityCell.Trim().ToLower();
+                            if (avail != "є" && avail != "нема")
+                            {
+                                throw new Exception("В полі 'Наявність' допустимі значення: 'є' або 'нема'");
+                            }
+                            bool availability = avail == "є";
 
-                            var brand = await _context.Brands
-                                .FirstOrDefaultAsync(b => b.BrandName == brandCell);
+                            var brand = await _context.Brands.FirstOrDefaultAsync(b => b.BrandName == brandCell);
                             if (brand == null && !string.IsNullOrEmpty(brandCell))
                             {
                                 brand = new Brand { BrandName = brandCell };
@@ -296,83 +369,14 @@ namespace ShoppingInfrastructure.Controllers
             return RedirectToAction("Index");
         }
 
-        [HttpGet]
-        public IActionResult ExportToWordOpenXml()
-        {
-            using (var stream = new MemoryStream())
-            {
-                using (var wordDoc = WordprocessingDocument.Create(
-                    stream,
-                    WordprocessingDocumentType.Document,
-                    true))
-                {
-                    MainDocumentPart mainPart = wordDoc.AddMainDocumentPart();
-                    mainPart.Document = new Document();
-                    Body body = new Body();
-                    mainPart.Document.Append(body);
-
-                    Paragraph paragraph = new Paragraph(
-                        new Run(new Text("Товари")));
-                    body.Append(paragraph);
-
-                    Table table = new Table();
-
-                    table.AppendChild(new TableProperties(
-                        new TableBorders(
-                            new TopBorder() { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
-                            new BottomBorder() { Val = BorderValues.Single, Size = 6 },
-                            new LeftBorder() { Val = BorderValues.Single, Size = 6 },
-                            new RightBorder() { Val = BorderValues.Single, Size = 6 },
-                            new InsideHorizontalBorder() { Val = BorderValues.Single, Size = 6 },
-                            new InsideVerticalBorder() { Val = BorderValues.Single, Size = 6 }
-                        )
-                    ));
-
-                    TableRow headerRow = new TableRow();
-                    headerRow.Append(new TableCell(new Paragraph(new Run(new Text("Ціна")))));
-                    headerRow.Append(new TableCell(new Paragraph(new Run(new Text("Наявність")))));
-                    headerRow.Append(new TableCell(new Paragraph(new Run(new Text("Назва")))));
-                    headerRow.Append(new TableCell(new Paragraph(new Run(new Text("Бренд")))));
-                    table.Append(headerRow);
-
-                    var products = _context.Products
-                        .Include(p => p.Brand)
-                        .ToList();
-
-                    foreach (var product in products)
-                    {
-                        TableRow dataRow = new TableRow();
-                        dataRow.Append(new TableCell(
-                            new Paragraph(new Run(new Text(product.Price.ToString())))));
-                        string availabilityText = product.Availability ? "є" : "нема";
-                        dataRow.Append(new TableCell(
-                            new Paragraph(new Run(new Text(availabilityText)))));
-                        dataRow.Append(new TableCell(
-                            new Paragraph(new Run(new Text(product.Name)))));
-                        string brandName = product.Brand?.BrandName ?? "";
-                        dataRow.Append(new TableCell(
-                            new Paragraph(new Run(new Text(brandName)))));
-
-                        table.Append(dataRow);
-                    }
-
-                    body.Append(table);
-                }
-
-                stream.Position = 0;
-                var fileName = "ProductsReport.docx";
-                return File(stream.ToArray(),
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    fileName);
-            }
-        }
-
+        // GET: Products/ImportDocx
         [HttpGet]
         public IActionResult ImportDocx()
         {
             return View();
         }
 
+        // POST: Products/ImportFromDocx
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ImportFromDocx(IFormFile docxFile)
@@ -380,7 +384,7 @@ namespace ShoppingInfrastructure.Controllers
             if (docxFile == null || docxFile.Length == 0)
             {
                 TempData["ImportMessage"] = "Файл не обрано або він порожній.";
-                return RedirectToAction("ImportDocx");
+                return RedirectToAction("Index");
             }
 
             try
@@ -401,22 +405,33 @@ namespace ShoppingInfrastructure.Controllers
                         }
 
                         var rows = table.Elements<DocumentFormat.OpenXml.Wordprocessing.TableRow>().Skip(1);
+                        int rowNumber = 2;
                         foreach (var row in rows)
                         {
                             var cells = row.Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>().ToList();
                             if (cells.Count < 4)
-                                continue; 
+                                continue;
 
                             string priceText = cells[0].InnerText;
                             string availabilityText = cells[1].InnerText;
                             string nameText = cells[2].InnerText;
                             string brandText = cells[3].InnerText;
 
-                            decimal price = 0;
-                            decimal.TryParse(priceText, out price);
+                            if (!decimal.TryParse(priceText, out decimal price))
+                            {
+                                throw new Exception($"Невірний формат ціни у рядку {rowNumber}.");
+                            }
+                            if (price < 0)
+                            {
+                                throw new Exception("Ціна не може бути від'ємною");
+                            }
 
-                            bool availability = (availabilityText == "є" ||
-                                                   availabilityText.Equals("true", StringComparison.OrdinalIgnoreCase));
+                            string avail = availabilityText.Trim().ToLower();
+                            if (avail != "є" && avail != "нема")
+                            {
+                                throw new Exception("В полі 'Наявність' допустимі значення: 'є' або 'нема'");
+                            }
+                            bool availability = avail == "є";
 
                             var brand = await _context.Brands.FirstOrDefaultAsync(b => b.BrandName == brandText);
                             if (brand == null && !string.IsNullOrEmpty(brandText))
@@ -434,6 +449,7 @@ namespace ShoppingInfrastructure.Controllers
                                 BrandId = brand?.Id ?? 0
                             };
                             _context.Products.Add(product);
+                            rowNumber++;
                         }
                     }
                 }
@@ -443,11 +459,16 @@ namespace ShoppingInfrastructure.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ImportMessage"] = $"Помилка імпорту: {ex.Message}";
+                string errorMessage = ex.Message;
+                if (errorMessage.Contains("The document cannot be opened because there is an invalid part") &&
+                    errorMessage.Contains("Expected Content Type=application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"))
+                {
+                    errorMessage = "Файл має неправильний формат. Завантажте дійсний документ .docx.";
+                }
+                TempData["ImportMessage"] = $"Помилка імпорту: {errorMessage}";
             }
 
             return RedirectToAction("Index");
         }
-
     }
 }
